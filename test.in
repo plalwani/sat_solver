@@ -1,0 +1,5 @@
+c This is a DIMACS Example
+c Lines starting with c are comments
+p cnf 3 2
+1 2 -3
+1 2 3
