@@ -38,6 +38,8 @@ http://logic.pdmi.ras.ru/~basolver/dimacs.html
 
 https://en.wikipedia.org/wiki/DPLL_algorithm$
 
+https://math.hws.edu/eck/cs225/s03/binary_trees/
+
 Benchmarks:
 
 http://www.cs.ubc.ca/~hoos/SATLIB/benchm.html
