@@ -29,14 +29,19 @@ class parser{
  public:
   std::vector <int> watch1;
   std::vector <int> watch2;
- private :
+
   std::vector <int> pos_value;
   std::vector <int> neg_value;
-
+ private :
   void readFile(std::ifstream &infile);
   void debug();
   int num_clauses;
   int num_var;
+
+  int org_clauses;
+ public:
+  int clause_counter;
+  int max_clauses;
 
 public:
 	parser(std::string inputfile);
@@ -52,7 +57,9 @@ public:
 
 	int varInClause(int clause_idx,int var_idx);
 
-	void varValFromIdx(int idx, int &var, int &val);
+
+	void getTerm(int clause_idx,int term_idx,int &branch_var,int &branch_val);
+       
 	
 	void updateValues();
 	int idxFromVarVal(int var_val);
@@ -63,7 +70,30 @@ public:
 	int getVariableStatus(int idx);
 	void setVariableStatus(int idx,int val);
 	void setClauseStatus(int idx, int val);
+
+	bool needNewWatch(int idx_clause,int var,int val);
+	void updateWatch(int idx);
+	void updateWV(int clause_idx,int branch_var,int branch_val);
+
+	bool notRedundent(std::vector <int> new_clause);
+	bool addClause(std::vector <int> new_clause);
+
+	void pushClause(std::vector<int> new_clause,int idx);
 };
 
+
+class settings{
+ public:
+  
+  int watch_var;
+  int conflict_var;
+
+  settings(std::string,std::string);
+  int watch();
+  int conflict();
+};
+
+
+int string2int(std::string var_str);
 
 #endif
