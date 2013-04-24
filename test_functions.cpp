@@ -1,4 +1,4 @@
-// test functions as well as ideas for DPLL, will be added to sat solver after testing
+// Test function to update watch variables and create a sorted list of literals using merge sort
 
 #include <iostream>
 #include <cstdlib>
@@ -16,76 +16,142 @@ F=
 (a'+b'+c)
 */
 
-// this is what the input parser is saving right now
-int dimacs__arr[8][3] = 
-{
-	{-1,2,3},
-	{1,3,4},
-	{1,3,-4},
-	{1,-3,4},
-	{1,-3,-4},
-	{-2,-3,4},
-	{-1,2,-3},
-	{-1,-2,3}
-};
+int dimacs_arr[8][3] = {
+{-1,2,3},
+{1,3,4},
+{1,3,-4},
+{1,-3,4},
+{1,-3,-4},
+{-2,-3,4},
+{-1,2,-3},
+{-1,-2,3}};
 
-// need to convert it to this form
 // -1 represents complement, 0 represents doesn't exist
-int in_arr[8][4] = 
+int in_arr[8][4] ={
+{-1,1,1,0},
+{1,0,1,1},
+{1,0,1,-1},
+{1,0,-1,1},
+{1,0,-1,-1},
+{0,-1,-1,1},
+{-1,1,-1,0},
+{-1,-1,1,0}};
+
+int m = 8; // num. of rows
+int n = 4; // num. of cols
+
+int clause_stat[8] = {0,0,0,0,0,0,0,0}; // unsatisfied initially
+int watch_var1[8];	// watched variable 1
+int watch_var2[8];	// watched variable 2
+int indx_arr[8];	// index array, this will be sorted
+int temp_arr[8];	// array that has occurence count
+
+// Function to get watched variables from unsatisfied clauses
+void update_watch_var(int row, int col)
 {
-	{-1,1,1,0},
-	{1,0,1,1},
-	{1,0,1,-1},
-	{1,0,-1,1},
-	{1,0,-1,-1},
-	{0,-1,-1,1},
-	{-1,1,-1,0},
-	{-1,-1,1,0}
-};
+for(int i = 0; i < row; i++)
+{
+	int cnt = 0;
+	for(int j = 0; j < col; j++)
+	{
+		if(clause_stat[i] == 0)	// if status unsatisfiable
+		{
+			if(cnt == 2){break;}
+			if((dimacs_arr[i][j] != 0)&&(cnt == 0)){watch_var1[i] = dimacs_arr[i][j]; cnt+=1; clause_stat[i] = 2; j+=1;}	// first watch var
+			if((dimacs_arr[i][j] != 0)&&(cnt == 1)){watch_var2[i] = dimacs_arr[i][j]; cnt+=1; clause_stat[i] = 0;}		// second watch var
+		}	
+	}
+}}
 
-/* Do a merge sort of all literals to make variable decision
-Worst case : nlog(n)
-worst case memory: n
-n is the number of variables so it won't be very high anyways
-*/
 
-/*
-end result should look like this :
-{1,3,-3,-1,4,2,-2,-4}
-*/
+// Function to create the initial list
+void create_list(int row,int col)
+{
+int x = 1;
+for(int j = 0; j< 8; j+=2)
+{
+	indx_arr[j] = x;
+	indx_arr[j+1] = -x;
+	x+=1;
+}
+int s=0;
+// count literal occurence
+for(int p = 0; p < col; p++)
+{
+	int pos_cnt = 0;
+	int neg_cnt = 0;
+	for(int q = 0; q < row; q++)
+	{
+		if(in_arr[q][p] == 1){pos_cnt+=1;}
+		if(in_arr[q][p] == -1){neg_cnt+=1;}
+	}
+	temp_arr[s] = pos_cnt;
+	temp_arr[s+1] = neg_cnt;
+	s+=2;
+}}
 
-// count occurence of each literal and save it, sort the literals based on their occurence
+
+// Sorting the array
+void merge(int,int,int);
+void mergesort(int low, int high)
+{
+int mid;
+if(low<high)
+{
+	mid=(low+high)/2;
+      	mergesort(low,mid);	//divide list into two parts
+        mergesort(mid+1,high);
+	merge(low,mid,high);	// sort the two parts, repeat
+}}
+
+void merge(int low, int mid, int high)
+{
+	int h,i,j,tmp[8],k;
+	h =low;
+	i = low;
+	j = mid+1;
+	while((h<=mid)&&(j<high))
+	{
+		if(temp_arr[h] <= temp_arr[j])
+		{
+			tmp[i]=indx_arr[h];
+			h++;
+		}
+		else
+		{
+			tmp[i] = indx_arr[j];
+			j++;
+		}
+		i++;
+	}
+	if(h>mid)
+	{
+		for(k=j;k<=high;k++)
+		{
+			tmp[i]=indx_arr[k];
+			i++;
+		}
+	}
+	else
+	{
+		for(k=h;k<=mid;k++)
+		{
+			tmp[i]=indx_arr[k];
+			i++;
+		}
+	}
+	for(k=low;k<=high;k++){indx_arr[k]=tmp[k];}
+}
+
 
 int main()
 {
-
-// ASSIGNING VALUES TO LITERALS:
-/*
-start from the literal first in the list
-assign literal=1(use in_arr to decrease computations)
-e.g. 
-for a = 0: 
-	set all -1 entries in first column to a 0
-	set all such rows as GREEN
-	leave all other rows to default YELLOW
-
-for c = 1:
-	set all 1 entries to 0 in column 3 
-	set all such rows as GREEN
-	leave all other rows to defualt YELLOW
-
-Note: just need to read one column depending upon the literal	
-*/
-
-// WATCH VARIABLES:
-/*
-read each row and save the first two non zero elements in memory
-if two variables not available then that row is a unit clause and need to be tagged somehow
-all unit clause rows need to be compared with each other, if any pairs exist then it is a conflictA
-
-OR make next decision based on the unit clause rather than from the sorted list, if any row ends up being 0 then it is a conflict
-*/
-
+update_watch_var(m,n);
+//for(int i = 0; i < m; i++){cout << "\t" << watch_var1[i] << "\t" << watch_var2[i] << "\n";}
+create_list(m,n);
+//for(int g = 0; g < 2*n; g++){cout<<"\n"<<temp_arr[g];}
+mergesort(0,2*n);
+for(int e = 0; e < 2*n; e++){cout<<"\n"<<indx_arr[e];}
 return 0;
 }
 
