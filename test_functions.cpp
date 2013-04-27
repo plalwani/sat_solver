@@ -44,10 +44,9 @@ int clause_stat[8] = {0,0,0,0,0,0,0,0}; // unsatisfied initially
 int watch_var1[8];	// watched variable 1
 int watch_var1[8];	// watched variable 2
 int indx_arr[8];	// index array, this will be sorted
-int temp_arr[8];	// array that has occurence count
 
 // Function to get watched variables from unsatisfied clauses
-void update_watch_var(int row, int col)
+void update_watch_var(int row, int col,int var)
 {
 for(int i = 0; i < row; i++)
 {
@@ -57,16 +56,19 @@ for(int i = 0; i < row; i++)
 		if(clause_stat[i] == 0)	// if status unsatisfiable
 		{
 			if(cnt == 2){break;}
-			if((dimacs_arr[i][j] != 0)&&(cnt == 0)){watch_var1[i] = dimacs_arr[i][j]; cnt+=1; clause_stat[i] = 2; j+=1;}	// first watch var
-			if((dimacs_arr[i][j] != 0)&&(cnt == 1)){watch_var2[i] = dimacs_arr[i][j]; cnt+=1; clause_stat[i] = 0;}		// second watch var
+			if((dimacs_arr[i][j] != 0)&&(cnt == 0)&&(watch_var1[i] == var)){watch_var1[i] = dimacs_arr[i][j]; cnt+=1; clause_stat[i] = 2; j+=1;}	// first watch var
+			if((dimacs_arr[i][j] != 0)&&(cnt == 1)&&(watch_var2[i] == var)){watch_var2[i] = dimacs_arr[i][j]; cnt+=1; clause_stat[i] = 0;}		// second watch var
 		}	
 	}
 }}
 
 
 // Function to create the initial list
-void create_list(int row,int col)
+void sort_index(int row,int col)
 {
+int size = 2*col;
+int temp_arr[size];
+
 int x = 1;
 for(int j = 0; j< 8; j+=2)
 {
@@ -74,6 +76,7 @@ for(int j = 0; j< 8; j+=2)
 	indx_arr[j+1] = -x;
 	x+=1;
 }
+
 int s=0;
 // count literal occurence
 for(int p = 0; p < col; p++)
@@ -88,70 +91,37 @@ for(int p = 0; p < col; p++)
 	temp_arr[s] = pos_cnt;
 	temp_arr[s+1] = neg_cnt;
 	s+=2;
-}}
-
-
-// Sorting the array
-void merge(int,int,int);
-void mergesort(int low, int high)
-{
-int mid;
-if(low<high)
-{
-	mid=(low+high)/2;
-      	mergesort(low,mid);	//divide list into two parts
-        mergesort(mid+1,high);
-	merge(low,mid,high);	// sort the two parts, repeat
-}}
-
-void merge(int low, int mid, int high)
-{
-	int h,i,j,tmp[8],k;
-	h =low;
-	i = low;
-	j = mid+1;
-	while((h<=mid)&&(j<high))
-	{
-		if(temp_arr[h] <= temp_arr[j])
-		{
-			tmp[i]=indx_arr[h];
-			h++;
-		}
-		else
-		{
-			tmp[i] = indx_arr[j];
-			j++;
-		}
-		i++;
-	}
-	if(h>mid)
-	{
-		for(k=j;k<=high;k++)
-		{
-			tmp[i]=indx_arr[k];
-			i++;
-		}
-	}
-	else
-	{
-		for(k=h;k<=mid;k++)
-		{
-			tmp[i]=indx_arr[k];
-			i++;
-		}
-	}
-	for(k=low;k<=high;k++){indx_arr[k]=tmp[k];}
 }
+
+//for(int q = 0; q < size; q++){cout<<"\ntemp_arr: "<<temp_arr[q];}
+
+int temp;
+for(int i = 0; i < size; i++)
+{
+	for(int j = 0; j < size-1; j++)
+	{
+		if(temp_arr[j] < temp_arr[j+1])
+		{
+			//sort temp_arr
+			temp = temp_arr[j];
+			temp_arr[j] = temp_arr[j+1];
+			temp_arr[j+1] = temp;
+
+			// sort indx_arr
+			temp = indx_arr[j];
+			indx_arr[j] = indx_arr[j+1];
+			indx_arr[j+1] = temp;
+		}
+	}
+}}
 
 
 int main()
 {
-update_watch_var(m,n);
-//for(int i = 0; i < m; i++){cout << "\t" << watch_var1[i] << "\t" << watch_var2[i] << "\n";}
-create_list(m,n);
-//for(int g = 0; g < 2*n; g++){cout<<"\n"<<temp_arr[g];}
-mergesort(0,2*n);
-for(int e = 0; e < 2*n; e++){cout<<"\n"<<indx_arr[e];}
+update_watch_var(m,n,0);
+for(int i = 0; i < m; i++){cout << "\twatch_var1:" << watch_var1[i] << "\twatch_var2:" << watch_var2[i] << "\n";}
+sort_index(8,4);
+for(int e = 0; e < 2*n; e++){cout<<"\nsorted index: "<<indx_arr[e];}
 return 0;
 }
 
