@@ -48,4 +48,4 @@ ftp://dimacs.rutgers.edu/pub/challenge/satisfiability/benchmarks/
 
 http://stackoverflow.com/questions/12547160/how-does-the-dpll-algorithm-work
 
-
+http://www.satcompetition.org
