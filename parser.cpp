@@ -181,7 +181,7 @@ parser::parser(std::string path){
 
 
 bool parser::branchWithMetric(int &branch_var, int &branch_val){
-  double best_val = 0;
+  double best_val = -1;
   branch_var = 0;
   branch_val = 0;
 
@@ -199,7 +199,7 @@ bool parser::branchWithMetric(int &branch_var, int &branch_val){
       }      
     }
   }
-  if(branch_var != 0){
+  if(branch_var != -1){
     return true;
   }
   return false;

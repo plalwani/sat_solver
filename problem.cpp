@@ -12,6 +12,62 @@ const int problem::SOLVED =1;
 const int problem::CONFLICT =-1;
 
 
+void problem::addConflict(){
+  
+}
+
+void problem::addClauseFromIdx(int conf1,int conf2,int branch_var){
+  
+}
+
+void problem::removeClause(int idx){
+  if(idx < P->org_clauses){
+    std::cout << "Error removing original clause\n";
+    exit(0);
+  }
+  
+  P->store[idx] = P->store[P->num_clauses-1];
+  P->num_clauses--;
+  
+  for(int i = 1; i<= level;i++){
+    for(int j =0; j < numLevel[i];i++){
+      if(levelClauses[i][j] == idx){
+	levelClauses[i][j] = levelClauses[i][numLevel[i]-1];
+	numLevel[i]--;
+	return;
+      }
+    }
+  }
+}
+
+void problem::showStatus2(){
+  if(debug == 0)
+    return;
+  std::cout << "Level " << level << " (out of) " << P->getVar() << " variables\n";
+  for(int i = 1; i <= P->getVar();i++){
+    std::cout << "Trace_var: " << trace_var[i];
+    std::cout <<" Trace_val " << trace_val[i];
+    std::cout <<" branch " <<branch[i];
+    std::cout <<" conf1 " <<con1[i];
+    std::cout <<" conf2 " <<con2[i];
+    std::cout << " numLevel " << numLevel[i] << " -> ";
+    for(int j = 0;j < numLevel[i];j++){
+      std::cout << levelClauses[i][j] << " ";
+    }
+    std::cout << "\n";
+  }
+
+  //std::cout << "\n";
+  for(int i = 0; i < num_active;i++){
+    int idx = activeClauses[i];
+    std::cout << i <<" "<<  idx << " wv1: " << P->watch1[idx] << " wv2: " << P->watch2[idx] << "   " ;
+    for(int j = 0; j < P->numTerms(idx);j++){
+      std::cout << P->getTerm(idx,j) << " "; 
+    }
+    std::cout <<"\n";
+  }
+  std::cout <<"\n";
+}
 
 
 problem::problem(std::string output_file){
@@ -26,10 +82,14 @@ problem::problem(std::string output_file){
   num_heuristic = 0;
   num_unit = 0;;
 
-  num_trace = 0;
-  trace.resize(P->getVar()+1);
+  num_trace = 1;
+  trace_var.resize(P->getVar()+1);
+  trace_val.resize(P->getVar()+1);
+  
+  con1.resize(P->getVar()+1);
+  con2.resize(P->getVar()+1);
 
-  activeClauses.resize(numClauses()*10);
+activeClauses.resize(numClauses()*10);
   satClauses.resize(numClauses()*10);
 
   for(int i = 0; i< numClauses()*10;i++){
@@ -37,6 +97,199 @@ problem::problem(std::string output_file){
     satClauses[i] = 0;
   }
 
+}
+
+void problem::solveProblem(){
+  version = 2;
+
+  initProblem();
+  preProcess();
+
+  if(version == 2){
+    std::cout << "Starting DPLL2\n";
+    DPLL2();
+    return;
+  }
+
+  
+  std::cout << "Starting DPLL\n";
+ 
+ 
+  int conf = -1;int mod = 0;
+  int status = DPLL(conf,mod);
+
+  if(status == CONFLICT){
+     std::cout << "UNSAT!!!!!!!\n";
+  }
+  if(status == SOLVED){
+    std::cout << "SAT!!!\n";
+  }
+
+  printStatus();
+  saveSolution(status);
+}
+
+
+void problem::DPLL2(){
+  level = 1;
+  int status;
+  while(level >= 1){
+    if(num_decisions % 1000000 == 0 && num_decisions != 0)
+      printStatus();
+      
+    if(num_decisions % 10000 == 0)
+      P->updateValues();
+    
+
+    showStatus2();
+  
+    int idx_of_conf_clause = 0;
+    status = solutionStatus(idx_of_conf_clause); 
+    
+    if(status == CONFLICT){
+      reverseUpdate2();
+      if(branch[level] == 1){
+	con1[level] = idx_of_conf_clause;
+      }
+      if(branch[level] == 2){
+	con2[level] = idx_of_conf_clause;
+      }
+
+      continue;
+    }
+
+
+    //std::cout << "level "<< level << "\n";
+
+    // if(branch[level] == 1){
+    //showStatus2();
+    // exit(0);
+    //}
+    
+    if(branch[level] == 1){
+      num_forced++;
+      doUpdate2(trace_var[level],-trace_val[level]);  
+      continue;  
+    }
+
+    if(branch[level] == 2){
+      addConflict();
+      branch[level] = 0;
+      con1[level] = 0;
+      con2[level] = 0;
+      reverseUpdate2();
+      continue;
+    }
+
+    /*
+      
+      std::cout << "level: " << level <<" branch " << branch[level] <<  "\n";
+
+      if(branch[level] == 2){
+	
+	if(level == 0){
+	  break;
+	}
+	
+	branch[level] = 0;	
+	std::cout << "error\n";
+	reverseUpdate2();
+	//branch[level] = 0;
+	//reverseUpdate2();
+	showStatus2();      
+	continue;	
+      }
+
+     
+
+
+    }   
+    */
+
+  
+    
+    
+  
+    
+    if(status == SOLVED){
+      std::cout << "SAT!!!!!!\n";
+      printStatus();
+      saveSolution(status);
+      return;
+    }	
+    int branch_var,branch_val,branch_type;
+
+    
+    selectBranchVariable(branch_var,branch_val,branch_type);
+    doUpdate2(branch_var,branch_val);
+
+    
+ 
+
+  }
+  
+  printStatus();
+  saveSolution(status);
+  std::cout << "UNSAT\n";
+}
+
+void problem::reverseUpdate2(){
+  // set_vars--;
+  level--;  
+  P->setVariableStatus(trace_var[level],0);
+  activateClauses2(trace_var[level],trace_val[level]);
+ 
+}
+
+void problem::doUpdate2(int branch_var,int branch_val){
+  //1. update watchvariables and clause status
+  num_decisions++;
+  P->setVariableStatus(branch_var,branch_val);
+  
+  branch[level]++;
+  trace_var[level] = branch_var;
+  trace_val[level] = branch_val;
+
+  for(int i = num_active-1; i >= 0;i--){
+    int idx = activeClauses[i];
+    
+    if(P->varInClause(idx,branch_var) == branch_val){	 
+      deActivate2(i);
+    }
+    
+    if(P->varInClause(idx,branch_var) == -branch_val){
+      P->updateWV(idx,branch_var,branch_val);
+    }
+  }
+
+  level++;
+}
+
+void problem::deActivate2(int idx_in_active){
+  levelClauses[level][numLevel[level]] = activeClauses[idx_in_active];
+  numLevel[level]++;
+  num_active--;
+  activeClauses[idx_in_active] = activeClauses[num_active];
+}
+
+void problem::activateClauses2(int branch_var,int branch_val){
+  for(int i = 0; i < numLevel[level];i++){
+    activeClauses[num_active] = levelClauses[level][i];    
+    num_active++;
+  }
+  numLevel[level] = 0;
+  for(int i = 0;i < num_active;i++){
+    int idx = activeClauses[i];
+
+    if(P->watch1[idx] == 0 || P->watch2[idx] == 0 && P->varInClause(idx,branch_var) == -branch_val){
+      if(P->watch1[idx] ==  0){
+	P->watch1[idx] = -branch_val*branch_var;
+      }else if(P->watch1[idx] != branch_val*branch_var){
+	P->watch2[idx] = -branch_val*branch_var;
+      }      
+    }
+  }
+  
 }
 
 
@@ -76,23 +329,7 @@ void problem::printOut(std::string text){
   out.close();
 }
 
-void problem::solveProblem(){
-  std::cout << "Starting DPL\n";
-  initProblem();
-  preProcess();
-  int conf = -1;int mod = 0;
-  int status = DPLL(conf,mod);
 
-  if(status == CONFLICT){
-     std::cout << "UNSAT!!!!!!!\n";
-  }
-  if(status == SOLVED){
-    std::cout << "SAT!!!\n";
-  }
-
-  printStatus();
-  saveSolution(status);
-}
 
 void problem::preProcess(){
   int changed = 0;
@@ -127,10 +364,27 @@ void problem::initProblem(){
     P->watch1[i] = P->getTerm(i,0);
     P->watch2[i] = P->getTerm(i,1);
   }
+
+  //2.All clauses are set as active
   num_active = numClauses();
   for(int i = 0; i < numClauses();i++){
     activeClauses[i] = i;
   }
+
+  numLevel.resize(P->getVar()+1);
+  levelClauses.resize(P->getVar()+1);
+  for(int i = 1; i <= P->getVar();i++){
+    levelClauses[i].resize(P->max_clauses);
+  }
+  
+  branch.resize(P->getVar()+1);
+ 
+
+  trace_var.resize(P->getVar()+1);
+  trace_val.resize(P->getVar()+1);
+  satClauses.resize(P->max_clauses);
+
+
   num_sat = 0;
 }
 
@@ -182,13 +436,15 @@ void problem::printStatus(){
 }
 
 
+
+
+
+
 int problem::DPLL(int &conf_idx,int &mod_changed){
   //status
 
   mod_changed = 0;
-  if(num_decisions % 1000000 == 0 && num_decisions != 0){
-    printStatus();
-  }
+  if(num_decisions % 1000000 == 0 && num_decisions != 0){printStatus();}
   
   if(num_decisions % 10000 == 0){
     P->updateValues();
@@ -319,7 +575,7 @@ void problem::doUpdate(int branch_var,int branch_val,int &clauses_changed){
   num_decisions++;
   P->setVariableStatus(branch_var,branch_val);
   
-  trace[num_trace] = branch_val*branch_var;
+  trace_var[num_trace] = branch_val*branch_var;
   num_trace++;
 
 
@@ -345,7 +601,7 @@ void problem::showStatus(){
   std::cout << "Status:\n";
   std::cout << "Trace "; 
   for(int i = 0; i < num_trace;i++){
-    std::cout << trace[i] << " ";
+    std::cout << trace_var[i] << " ";
   }
   std::cout << "\n";
   for(int i = 0; i < num_active;i++){

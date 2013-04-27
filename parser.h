@@ -19,6 +19,7 @@
 
 
 class parser{
+ public:
   bool readline(std::ifstream &input, std::string &read_to);
   std::vector <std::vector <int> > store;
   
@@ -32,14 +33,15 @@ class parser{
 
   std::vector <int> pos_value;
   std::vector <int> neg_value;
- private :
+
   void readFile(std::ifstream &infile);
   void debug();
   int num_clauses;
   int num_var;
 
-  int org_clauses;
  public:
+  int org_clauses;
+
   int clause_counter;
   int max_clauses;
 
