@@ -42,7 +42,7 @@ int n = 4; // num. of cols
 
 int clause_stat[8] = {0,0,0,0,0,0,0,0}; // unsatisfied initially
 int watch_var1[8];	// watched variable 1
-int watch_var2[8];	// watched variable 2
+int watch_var1[8];	// watched variable 2
 int indx_arr[8];	// index array, this will be sorted
 int temp_arr[8];	// array that has occurence count
 
