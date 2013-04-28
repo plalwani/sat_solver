@@ -25,14 +25,16 @@ class problem{
  private:
   int debug;
   int version;
-
   int level;
 
   int num_decisions; 
   int num_forced;
   int num_heuristic;
   int num_unit;
+  int size;
+  int indx_arr[];	
 
+  void updateValues();
   std::string out_file;
   void DPLL2();
   int DPLL(int &conf_idx,int &mod_changed);

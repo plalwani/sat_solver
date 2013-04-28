@@ -138,7 +138,7 @@ void problem::DPLL2(){
       printStatus();
       
     if(num_decisions % 10000 == 0)
-      P->updateValues();
+      updateValues();
     
 
     showStatus2();
@@ -386,6 +386,9 @@ void problem::initProblem(){
 
 
   num_sat = 0;
+  int* indx_arr = new int [size];
+  size = 2*(P->getVar());
+
 }
 
 
@@ -447,7 +450,7 @@ int problem::DPLL(int &conf_idx,int &mod_changed){
   if(num_decisions % 1000000 == 0 && num_decisions != 0){printStatus();}
   
   if(num_decisions % 10000 == 0){
-    P->updateValues();
+    updateValues();
   }
 
   int status = solutionStatus(conf_idx); 
@@ -726,3 +729,63 @@ bool problem::findUnitClause(int &branch_var, int &branch_val){
   return false;
 }
 
+
+void problem::updateValues()
+{
+P->printData();
+
+int temp_arr[size];	// temp array to store the varaible occurence
+for(int w = 0; w < size; w++){temp_arr[w] = 0;}	   // make it a zero array
+
+// create unsorted index array
+int x = 1;
+for(int j = 0; j< size; j+=2)
+{
+	indx_arr[j] = x;
+	indx_arr[j+1] = -x;
+	x+=1;
+}
+
+int s=0;
+// count literal occurence
+for(int p = 1; p <= P->getVar(); p++)	//loop over all columns
+{
+	int pos_cnt = 0;
+	int neg_cnt = 0;
+	for(int q = 0; q < num_active; q++)	// loop over unsatisfied rows
+	{
+		int rw = activeClauses[q];	//current row
+		if(P->data[rw][p] == 1){pos_cnt+=1;}
+		if(P->data[rw][p] == -1){neg_cnt+=1;}
+		//std::cout<<"\ndata:"<<P->data[rw][p];
+	}
+	temp_arr[s] = pos_cnt;
+	temp_arr[s+1] = neg_cnt;
+	s+=2;
+	//std::cout<<"\nvar1 pos:"<<temp_arr[s];
+	//std::cout<<"\nvar1 neg:"<<temp_arr[s+1];
+}
+
+//for(int e = 0; e < size; e++){std::cout<<"\ntemp_arr:"<<temp_arr[e];}
+
+int temp;
+for(int i = 0; i < size; i++)
+{
+	for(int j = 0; j < size-1; j++)
+	{
+		if(temp_arr[j] < temp_arr[j+1])
+		{
+			//sort temp_arr
+			temp = temp_arr[j];
+			temp_arr[j] = temp_arr[j+1];
+			temp_arr[j+1] = temp;
+
+			// sort indx_arr
+			temp = indx_arr[j];
+			indx_arr[j] = indx_arr[j+1];
+			indx_arr[j+1] = temp;
+		}
+	}
+}
+//for(int y = 0; y < size; y++){std::cout<<"index array; "<<indx_arr[y];}
+}
