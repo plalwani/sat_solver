@@ -7,10 +7,23 @@
 #include <map>
 
 
+int parser::nextIndex(){
+  return next_index;
+}
+
+void parser::updateNext(){
+  next_index++;
+  
+  if(next_index == max_clauses){
+    next_index = org_clauses;
+  }
+}
 int parser::getClauseStatus(int idx){
   //returns if a clause is sat=1 unsat=-1 undef=0
   return clause_status[idx];
 }
+
+
 
 
 int parser::getVariableStatus(int idx){
@@ -56,6 +69,7 @@ void parser::convertData(){
 }
 
 
+
 int parser::varInClause(int clause_idx,int var_idx){
   return data[clause_idx][var_idx];
 }
@@ -89,7 +103,7 @@ void parser::readFile(std::ifstream &infile){
     std::cout << "input fail in parser.cpp";
     exit(0);
   }
- 
+  int tt =0;
   int line_num = 1;
   while (infile.good()) {   
     validline = readline(infile, line);
@@ -114,6 +128,8 @@ void parser::readFile(std::ifstream &infile){
 	max_clauses = 2*num_clauses;
 	clause_counter = num_clauses;
 	org_clauses = num_clauses;
+	next_index = num_clauses;
+	store.resize(max_clauses);
       }
     }else{
       std::vector <int> tmp;	
@@ -131,7 +147,8 @@ void parser::readFile(std::ifstream &infile){
 	}
 	tmp.push_back(num);
       }
-      store.push_back(tmp);
+      store[tt] =tmp;
+      tt++;
     }
 
 
@@ -166,7 +183,7 @@ parser::parser(std::string path){
     std::cout << "File could not be obend" << "\n";
     exit(0);
   }
-  print();
+  // print();
   infile.close();
  
   convertData();
@@ -340,22 +357,21 @@ bool parser::notRedundent(std::vector <int> new_clause){
   return true;
 }
 
-bool parser::addClause(std::vector <int> new_clause){
-  if(clause_counter == max_clauses){
-    return false;
-    clause_counter = max_clauses;
+bool parser::addClause(std::vector <int> new_row){
+  //std::cout << " next " << next_index << " num_clauses " << num_clauses <<"\n";
+  
+  if(next_index > num_clauses){
+    std::cout<<"error wrong next index \n";
+    exit(0);
   }
-  if(notRedundent(new_clause)){
-    if(num_clauses < max_clauses){
-      num_clauses++;
-    }   
-    pushClause(new_clause,clause_counter);
-    clause_counter++;
-  }
-}
 
-void parser::pushClause(std::vector<int> new_clause,int new_clause_idx){
-  int i = new_clause_idx;
+
+
+  num_clauses++;
+  
+  store[num_clauses-1] = new_row;
+  //std::cout <<  store[num_clauses-1].size() <<"\n";
+  int i = num_clauses-1; 
   for(int j = 0; j < numTerms(i);j++){
     int line = abs(getTerm(i,j));
     if(getTerm(i,j) > 0){
@@ -364,6 +380,8 @@ void parser::pushClause(std::vector<int> new_clause,int new_clause_idx){
       data[i][line] = -1;
     }
   }
+  
+
 }
 
 void parser::updateWatch(int i){

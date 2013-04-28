@@ -38,6 +38,8 @@ class parser{
   void debug();
   int num_clauses;
   int num_var;
+  int next_index;
+
 
  public:
   int org_clauses;
@@ -56,6 +58,10 @@ public:
 	void convertData();
 
 	void printValue();
+
+	int nextIndex();
+
+	void updateNext();
 
 	int varInClause(int clause_idx,int var_idx);
 

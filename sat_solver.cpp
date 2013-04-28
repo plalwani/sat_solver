@@ -11,7 +11,7 @@
 #include <iostream>
 #include "parser.h"
 #include "problem.h"
-#include "node.h"
+
 
 parser * P;
 settings * SET;
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
   std::cout << "PATH: " << path  << "\n";
   P = new parser(path);
-  P->printValue();
+  //P->printValue();
   problem * prob = new problem(output);
   prob->solveProblem();  
 

@@ -78,14 +78,18 @@ class problem{
 
 public:
 
+  void updateValues2();
+  
   void removeClause(int idx);
   void addClauseFromIdx(int conf1,int conf2,int branch_var);
 
 
-  bool findClause(int conf1,int conf2,int branch_var, std::vector <int> &new_row);
+  std::vector <int>  findClause(int conf1,int conf2,int branch_var);
   void showStatus();
   void showStatus2();
 
+  void pushClause(std::vector <int> v);
+  void printVector(std::vector <int> v);
 
   void printStatus();
   void preProcess();

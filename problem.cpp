@@ -12,8 +12,103 @@ const int problem::SOLVED =1;
 const int problem::CONFLICT =-1;
 
 
-void problem::addConflict(){
+void problem::pushClause(std::vector <int> new_row){
+  int next_index = P->nextIndex();
+  //std::cout << "\nnext index " << next_index <<  "\n";
+  removeClause(next_index);
+  showStatus2();
+  P->addClause(new_row);
+  P->updateWatch(next_index);
+  activeClauses[num_active] = P->nextIndex();
+  P->updateNext();
+  num_active++;
   
+  showStatus2();
+  //exit(0);
+
+ 
+
+
+
+  showStatus2();
+ 
+}
+
+std::vector<int> problem::findClause(int conf1,int conf2,int branch_var){
+  std::vector <int> new_row;
+
+  for(int i = 0; i < P->numTerms(conf1);i++){
+    if(abs(P->getTerm(conf1,i)) != branch_var){
+      new_row.push_back(P->getTerm(conf1,i));
+    }
+  }
+
+  if(debug == 1){
+    std::cout << "\n";
+    for(int i = 0; i < new_row.size();i++){
+      std::cout << new_row[i] <<" ";
+    }
+    std::cout << "\n";
+  }
+
+  for(int i = 0; i < P->numTerms(conf2);i++){
+    if(abs(P->getTerm(conf2,i)) != branch_var){
+      int set = 1;
+      for(int j = 0; j < new_row.size();j++){
+	if(P->getTerm(conf2,i) == new_row[j]){
+	  set = 0;
+	  break;
+	}
+      }
+      if(set == 1){
+	new_row.push_back(P->getTerm(conf2,i));
+      }
+    }
+  }
+
+  if(debug == 1){
+    std::cout << "\n";
+    for(int i = 0; i < new_row.size();i++){
+      std::cout << new_row[i] <<" ";
+    }
+    std::cout << "\n";
+  }
+
+
+  return new_row;
+}
+
+void problem::printVector(std::vector <int> new_row){
+  if(debug == 1){
+    std::cout << "\n";
+    for(int i = 0; i < new_row.size();i++){
+      std::cout << new_row[i] <<" ";
+    }
+    std::cout << "\n";
+  }
+}
+
+void problem::addConflict(){
+  if(SET->conflict() == 0){
+    return;
+  }
+
+  //std::cout << "con1 " << con1[level] << " con2 " << con2[level] <<"\n";
+  if( con1[level] == 0|| con2[level] == 0){
+    return;
+  }
+  if(con1[level] >= P->org_clauses)
+    return;
+  if(con2[level] >= P->org_clauses)
+   return;
+  if(P->nextIndex() % 100 == 0)
+    std::cout << "adding clause " << P->num_clauses << "next_idx " << P->nextIndex()<< " \n";
+
+  std::vector <int> new_row = findClause(con1[level],con2[level],trace_val[level]*trace_var[level]);
+  printVector(new_row);
+  pushClause(new_row);
+  
+  //exit(0);
 }
 
 void problem::addClauseFromIdx(int conf1,int conf2,int branch_var){
@@ -21,23 +116,54 @@ void problem::addClauseFromIdx(int conf1,int conf2,int branch_var){
 }
 
 void problem::removeClause(int idx){
+  if(P->nextIndex() >= P->num_clauses){
+    //std::cout << "no remove";
+    return;
+  }
+
   if(idx < P->org_clauses){
     std::cout << "Error removing original clause\n";
     exit(0);
   }
   
-  P->store[idx] = P->store[P->num_clauses-1];
-  P->num_clauses--;
-  
+
+
   for(int i = 1; i<= level;i++){
-    for(int j =0; j < numLevel[i];i++){
+    for(int j =0; j < numLevel[i];j++){
       if(levelClauses[i][j] == idx){
 	levelClauses[i][j] = levelClauses[i][numLevel[i]-1];
 	numLevel[i]--;
-	return;
       }
+      if(levelClauses[i][j] == P->num_clauses-1){
+	levelClauses[i][j] =  idx;        
+      }
+
     }
   }
+
+
+
+  for(int i = 0; i < num_active;i++){
+    if(activeClauses[i] == idx){
+      num_active--;
+      activeClauses[i] = activeClauses[num_active];
+      break;
+    }
+  }
+  
+  for(int i = 0; i < num_active;i++){
+    if(activeClauses[i] == P->num_clauses -1){
+      activeClauses[i] = idx;
+      break;
+    }
+  }
+
+  P->store[idx] = P->store[P->num_clauses-1];
+  P->data[idx] = P->data[P->num_clauses-1];
+  P->watch1[idx] =   P->watch1[P->num_clauses-1];
+  P->watch2[idx] =   P->watch2[P->num_clauses-1];
+  P->num_clauses--;
+
 }
 
 void problem::showStatus2(){
@@ -71,7 +197,7 @@ void problem::showStatus2(){
 
 
 problem::problem(std::string output_file){
-  debug = 1;
+  debug = 0;
   out_file = output_file;
   std::ofstream out;
   out.open(out_file.data(),std::ofstream::out);
@@ -130,16 +256,40 @@ void problem::solveProblem(){
 }
 
 
+void problem::updateValues2(){
+  P->updateValues();
+  return;
+
+  for(int i = 0; i <= P->getVar();i++){
+    P->pos_value[i] = 0;
+    P->neg_value[i] = 0;
+  }
+
+  for(int ii = 0; ii < num_active;ii++){
+    int i = activeClauses[ii];
+    for(int j = 0; j < P->numTerms(i);j++){
+      int idx = abs(P->getTerm(i,j));
+      if(P->getTerm(i,j) > 0){
+	P->pos_value[idx]++;
+      }else{
+	P->neg_value[idx]++;
+      }
+    }
+  }
+}
+
 void problem::DPLL2(){
   level = 1;
   int status;
   while(level >= 1){
-    if(num_decisions % 1000000 == 0 && num_decisions != 0)
+    if(num_decisions % 1000000 == 0 && num_decisions != 0){
+      num_decisions++;
       printStatus();
-      
-    if(num_decisions % 10000 == 0)
-      P->updateValues();
-    
+    }
+    if(num_decisions % 10000 == 0){
+      updateValues2();
+      num_decisions++;
+    }
 
     showStatus2();
   
@@ -332,12 +482,13 @@ void problem::printOut(std::string text){
 
 
 void problem::preProcess(){
+  return;
   int changed = 0;
   int vars = 0;
   for(int i = 1; i<= P->getVar();i++){
     if(P->pos_value[i] ==  0){
       //do update with xi as -1;
-      doUpdate(i,-1,changed);
+      doUpdate2(i,-1);
       vars++;
       continue;
     }
@@ -345,7 +496,7 @@ void problem::preProcess(){
       //do update with xi as -1;
       vars++;
       
-      doUpdate(i,1,changed);
+      doUpdate2(i,1); //i,1,changed);
     }
   }
 
@@ -446,8 +597,8 @@ int problem::DPLL(int &conf_idx,int &mod_changed){
   mod_changed = 0;
   if(num_decisions % 1000000 == 0 && num_decisions != 0){printStatus();}
   
-  if(num_decisions % 10000 == 0){
-    P->updateValues();
+  if(num_decisions % 10 == 0){
+    updateValues2();
   }
 
   int status = solutionStatus(conf_idx); 
@@ -506,59 +657,16 @@ int problem::addConflictClause(int conf1,int conf2,int branch_var){
     std::cout << "add conflict clause idx: " << conf1 << " " << conf2 << " var " << branch_var <<  "\n" ;
   std::vector <int> new_clause;
 
-  if(findClause(conf1,conf2,branch_var,new_clause)){
-    P->addClause(new_clause);
-    int tmp= 0;
-    deActivate(P->clause_counter -1,tmp);
-    return 1;
-  }
+  //if(findClause(conf1,conf2,branch_var,new_clause)){
+  //P->addClause(new_clause);
+  //int tmp= 0;
+  //deActivate(P->clause_counter -1,tmp);
+  //return 1;
+  //}
   return 0;
 }
 
-bool problem::findClause(int conf1,int conf2,int branch_var, std::vector <int> &new_row){
-  for(int i = 0; i < P->numTerms(conf1);i++){
-    if(abs(P->getTerm(conf1,i)) != branch_var){
-      new_row.push_back(P->getTerm(conf1,i));
-    }
-  }
 
-  if(debug == 1){
-    std::cout << "\n";
-    for(int i = 0; i < new_row.size();i++){
-      std::cout << new_row[i] <<" ";
-    }
-    std::cout << "\n";
-  }
-
-  for(int i = 0; i < P->numTerms(conf2);i++){
-    if(abs(P->getTerm(conf2,i)) != branch_var){
-      int set = 1;
-      for(int j = 0; j < new_row.size();j++){
-	if(P->getTerm(conf2,i) == new_row[j]){
-	  set = 0;
-	  break;
-	}
-      }
-      if(set == 1){
-	new_row.push_back(P->getTerm(conf2,i));
-      }
-    }
-  }
-
-  if(debug == 1){
-    std::cout << "\n";
-    for(int i = 0; i < new_row.size();i++){
-      std::cout << new_row[i] <<" ";
-    }
-    std::cout << "\n";
-  }
-  if(new_row.size() == num_trace){
-    //std::cout << "false clause\n";
-    return false;
-  }
-
-  return true;
-}
 
 
 void problem::reverseUpdate(int branch_var,int branch_val,int changed){
