@@ -11,7 +11,6 @@
 #include <iostream>
 #include "parser.h"
 #include "problem.h"
-#include "node.h"
 
 parser * P;
 settings * SET;
