@@ -285,18 +285,15 @@ void problem::DPLL2(){
     if(num_decisions % 1000000 == 0 && num_decisions != 0){
       num_decisions++;
       printStatus();
-<<<<<<< HEAD
       
     if(num_decisions % 10000 == 0)
       updateValues();
     
-=======
     }
     if(num_decisions % 10000 == 0){
       updateValues2();
       num_decisions++;
     }
->>>>>>> bc1ee959fa6f66034403503914d76b91b460423a
 
     showStatus2();
   
@@ -607,13 +604,8 @@ int problem::DPLL(int &conf_idx,int &mod_changed){
   mod_changed = 0;
   if(num_decisions % 1000000 == 0 && num_decisions != 0){printStatus();}
   
-<<<<<<< HEAD
   if(num_decisions % 10000 == 0){
     updateValues();
-=======
-  if(num_decisions % 10 == 0){
-    updateValues2();
->>>>>>> bc1ee959fa6f66034403503914d76b91b460423a
   }
 
   int status = solutionStatus(conf_idx); 
