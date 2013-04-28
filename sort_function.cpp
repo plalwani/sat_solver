@@ -1,9 +1,13 @@
 // Function to create the sorted list
-void sort_index()
+// needs to know the total number of variables,activeClauses[] and num_active
+// need to add indx_arr to a class
+// need access to 0,1,-1 matrix
+
+void updateValues()
 {
 
-int size = 2*((P->getVar())-(level)); // twice the size of unsatisifiable variables
 int temp_arr[size];	// temp array to store the varaible occurence
+for(int w = 0; w < size; w++){temp_arr[w] = 0;}	   // make it a zero array
 
 // create unsorted index array
 int x = 1;

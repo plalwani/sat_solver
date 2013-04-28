@@ -40,37 +40,19 @@ int in_arr[8][4] ={
 int m = 8; // num. of rows
 int n = 4; // num. of cols
 
-int clause_stat[8] = {0,0,0,0,0,0,0,0}; // unsatisfied initially
-int watch_var1[8];	// watched variable 1
-int watch_var1[8];	// watched variable 2
 int indx_arr[8];	// index array, this will be sorted
+int num_active = 3;
+int activeClauses[3] = {1,3,5};
 
-// Function to get watched variables from unsatisfied clauses
-void update_watch_var(int row, int col,int var)
+// Function to create the sorted list
+void sort_index()
 {
-for(int i = 0; i < row; i++)
-{
-	int cnt = 0;
-	for(int j = 0; j < col; j++)
-	{
-		if(clause_stat[i] == 0)	// if status unsatisfiable
-		{
-			if(cnt == 2){break;}
-			if((dimacs_arr[i][j] != 0)&&(cnt == 0)&&(watch_var1[i] == var)){watch_var1[i] = dimacs_arr[i][j]; cnt+=1; clause_stat[i] = 2; j+=1;}	// first watch var
-			if((dimacs_arr[i][j] != 0)&&(cnt == 1)&&(watch_var2[i] == var)){watch_var2[i] = dimacs_arr[i][j]; cnt+=1; clause_stat[i] = 0;}		// second watch var
-		}	
-	}
-}}
 
-
-// Function to create the initial list
-void sort_index(int row,int col)
-{
-int size = 2*col;
+int size = 2*((P->getVar())-(level)); // twice the size of unsatisifiable variables
 int temp_arr[size];
 
 int x = 1;
-for(int j = 0; j< 8; j+=2)
+for(int j = 0; j< size; j+=2)
 {
 	indx_arr[j] = x;
 	indx_arr[j+1] = -x;
@@ -83,10 +65,11 @@ for(int p = 0; p < col; p++)
 {
 	int pos_cnt = 0;
 	int neg_cnt = 0;
-	for(int q = 0; q < row; q++)
+	for(int q = 0; q < num_active; q++)
 	{
-		if(in_arr[q][p] == 1){pos_cnt+=1;}
-		if(in_arr[q][p] == -1){neg_cnt+=1;}
+		int rw = activeClauses[q];
+		if(in_arr[rw][p] == 1){pos_cnt+=1;}
+		if(in_arr[rw][p] == -1){neg_cnt+=1;}
 	}
 	temp_arr[s] = pos_cnt;
 	temp_arr[s+1] = neg_cnt;
