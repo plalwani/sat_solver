@@ -3,6 +3,13 @@ sat_solver
 
 A satifiability solver using DPLL framework immplemented using C++. 
 
+Usage:
+use the included make file to compile the code
+# make
+Run the sat solver
+# ./myrun <in_file> <out_file> X Y
+where X and Y are binary toggles(1: ON, 0: OFF) for Watched Variables and Conflict Driven Learning respectively.
+
 Terminology:
 
 SAT : Given a boolean formula find a variable assignment such that the formula evaluates to 1 or prove that no such assignment exists.
