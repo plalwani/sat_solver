@@ -14,12 +14,12 @@ print "\nPress any key to continue:";
 
 print "\ngetting the list of benchmarks now\n";
 
-system("make");
 system("make clean");
+system("make");
 
 # Consolidated file to store all results
 my $consol_file = getcwd() . "/Results.csv";
-open(FILE, ">",$consol_file);
+open(FILE, ">",$consol_file) or die $!;
 print FILE "Benchmark,Status,Basic DPLL(hh:mm:ss),DPLL with Conflict learning(hh:mm:ss),DPLL with Watch_Var(hh:mm:ss),DPLL with Watch_Var & Conflict learning(hh:mm:ss)\n";
 
 my $cmd;
@@ -34,27 +34,23 @@ foreach(@benchmarks)
 
 	# Basic DPLL
 	print "\nRunning benchmark " . $bench[1] . " with basic DPLL: \n";
-	$cmd = "/usr/bin/time -f \"%E\" -o $_" . "_00.time ./myrun $_" . " $_" . "_00.out" . " 0 0";
-	system($cmd);
+	run_sat_solver($_,0,0);
 	print_status($bench[1],"00");
 	print_time($bench[1],"00");
 	
 	# DPLL with watch Variables
 	print "\nRunning benchmark " . $bench[1] . " with conflict driven learning: \n";
-	$cmd = "/usr/bin/time -f \"%E\" -o $_" . "_01.time ./myrun $_" . " $_" . "_01.out" . " 0 1";
-	system($cmd);
+	run_sat_solver($_,0,1);
 	print_time($bench[1],"01");
 
 	# DPLL with Conflict Clauses
 	print "\nRunning benchmark " . $bench[1] . " with watched variables: \n";
-	$cmd = "/usr/bin/time -f \"%E\" -o $_" . "_10.time ./myrun $_" . " $_" . "_10.out" . " 1 0";
-	system($cmd);
+	run_sat_solver($_,1,0);
 	print_time($bench[1],"10");
 
 	# DPLL with Watch Variables and Conflict Clauses
 	print "\nRunning benchmark " . $bench[1] . " with watched variables and conflict driven learning: \n";
-	$cmd = "/usr/bin/time -f \"%E\" -o $_" . "_11.time ./myrun $_" . " $_" . "_11.out" . " 1 1";
-	system($cmd);
+	run_sat_solver($_,1,1);
 	print_time($bench[1],"11");
 
 	print FILE "\n";
@@ -71,7 +67,7 @@ system("tar --remove-files -cf ./benchmarks/time_files.tar ./benchmarks/*.time")
 sub print_time
 {
 	my $tm_file = "./benchmarks/" . $_[0] . "_" . "$_[1]" . ".time";
-	open(FL, "<", $tm_file);
+	open(FL, "<", $tm_file) or die $!;
 	my @tmp = <FL>;
 	close(FL);
 	chomp($tmp[0]);
@@ -83,7 +79,7 @@ sub print_time
 sub print_status
 {
 	my $out_file = "./benchmarks/" . $_[0] . "_" . "$_[1]" . ".out";
-	open(FL, "<", $out_file);
+	open(FL, "<", $out_file) or die $!;
 	my @tmp = <FL>;
 	close(FL);
 	
@@ -102,4 +98,12 @@ sub print_status
 	{
 		print FILE ",UNSAT";
 	}
+}
+
+
+#Run the sat solver with specified toggle
+sub run_sat_solver
+{
+	my $cmd = "/usr/bin/time -f \"%E\" -o $_[0]" . "_" . "$_[1]" . "$_[2]" . ".time ./myrun $_[0] $_[0]" . "_" . "$_[1]" . "$_[2]" . ".out" . " $_[1] $_[2]";
+	system($cmd);
 }
