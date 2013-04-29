@@ -7,8 +7,11 @@ Usage:
 use the included make file to compile the code
 # make
 Run the sat solver
-# ./myrun <in_file> <out_file> X Y
+# ./myrun in_file out_file X Y
 where X and Y are binary toggles(1: ON, 0: OFF) for Watched Variables and Conflict Driven Learning respectively.
+
+Looping over Benchmarks:
+Use the run_benchmarks.pl file to loop over several benchmarks, read the description in file for usage instructions
 
 Terminology:
 
