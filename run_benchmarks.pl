@@ -7,6 +7,11 @@ use strict;
 use warnings;
 use Cwd;
 
+print"\nThis script will loop over all cnf files stored in ./benchmarks/";
+print"\nAll results will be saved in Results.csv and output files will be dumped in tar files(benchmark folder)";
+print "\nPress any key to continue:";
+<>;
+
 print "\ngetting the list of benchmarks now\n";
 
 system("make");
@@ -57,12 +62,12 @@ foreach(@benchmarks)
 
 close(FILE);
 # zip all output files
-system("tar --remove-files -cf output_files.tar *.out");
+system("tar --remove-files -cf ./benchmarks/output_files.tar ./benchmarks/*.out");
 # zip all time files
-system("tar --remove-files -cf time_files.tar *.time");
+system("tar --remove-files -cf ./benchmarks/time_files.tar ./benchmarks/*.time");
 
 
-# Reads the time from time file
+# Read the time from time file
 sub print_time
 {
 	my $tm_file = "./benchmarks/" . $_[0] . "_" . "$_[1]" . ".time";
@@ -74,7 +79,7 @@ sub print_time
 }
 
 
-#Finds if the benchmark is SAT or UNSAT
+#Find if the benchmark is SAT or UNSAT
 sub print_status
 {
 	my $out_file = "./benchmarks/" . $_[0] . "_" . "$_[1]" . ".out";
