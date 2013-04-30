@@ -1,4 +1,3 @@
-==========
 sat_solver
 ==========
 
@@ -8,6 +7,7 @@ Included Project Report has all other details.
 
 
 Usage:
+======
 
 The SAT solver can be compiled by using the included make file.
 
@@ -39,6 +39,7 @@ Looping over Benchmarks:
 
 
 Directory Structure:
+====================
 
 • Makefile: Used for compiling the code
 
