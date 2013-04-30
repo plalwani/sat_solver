@@ -1,4 +1,4 @@
-sat_solver
+SAT solver
 ==========
 
 A satifiability solver using DPLL framework immplemented using C++. 
