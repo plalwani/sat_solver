@@ -11,7 +11,7 @@
 const int problem::SOLVED =1;
 const int problem::CONFLICT =-1;
 
-
+//Adds conflict clauses
 void problem::pushClause(std::vector <int> new_row){
   int next_index = P->nextIndex();
   //std::cout << "\nnext index " << next_index <<  "\n";
@@ -34,6 +34,7 @@ void problem::pushClause(std::vector <int> new_row){
  
 }
 
+// Creates the conflict clauses
 std::vector<int> problem::findClause(int conf1,int conf2,int branch_var){
   std::vector <int> new_row;
 
@@ -78,6 +79,7 @@ std::vector<int> problem::findClause(int conf1,int conf2,int branch_var){
   return new_row;
 }
 
+// Debug function
 void problem::printVector(std::vector <int> new_row){
   if(debug == 1){
     std::cout << "\n";
@@ -88,6 +90,7 @@ void problem::printVector(std::vector <int> new_row){
   }
 }
 
+// Add conflict clause function
 void problem::addConflict(){
   if(SET->conflict() == 0){
     return;
@@ -111,10 +114,8 @@ void problem::addConflict(){
   //exit(0);
 }
 
-void problem::addClauseFromIdx(int conf1,int conf2,int branch_var){
   
-}
-
+// replace oldest clause if full
 void problem::removeClause(int idx){
   if(P->nextIndex() >= P->num_clauses){
     //std::cout << "no remove";
@@ -166,6 +167,7 @@ void problem::removeClause(int idx){
 
 }
 
+// Debug function to show the data structure
 void problem::showStatus2(){
   if(debug == 0)
     return;
@@ -195,7 +197,7 @@ void problem::showStatus2(){
   std::cout <<"\n";
 }
 
-
+// initialization
 problem::problem(std::string output_file){
   debug = 0;
   out_file = output_file;
@@ -225,6 +227,7 @@ activeClauses.resize(numClauses()*10);
 
 }
 
+// DPLL
 void problem::solveProblem(){
   version = 2;
 
@@ -237,7 +240,7 @@ void problem::solveProblem(){
     return;
   }
 
-  
+ /* 
   std::cout << "Starting DPLL\n";
  
  
@@ -253,9 +256,10 @@ void problem::solveProblem(){
 
   printStatus();
   saveSolution(status);
+  */
 }
 
-
+// updates the data structure after varaible assignment
 void problem::updateValues2(){
   P->updateValues();
   return;
@@ -278,6 +282,8 @@ void problem::updateValues2(){
   }
 }
 
+// Prints status after every million decisions
+//  Main loop of the algorithm
 void problem::DPLL2(){
   level = 1;
   int status;
@@ -335,31 +341,7 @@ void problem::DPLL2(){
       continue;
     }
 
-    /*
-      
-      std::cout << "level: " << level <<" branch " << branch[level] <<  "\n";
-
-      if(branch[level] == 2){
-	
-	if(level == 0){
-	  break;
-	}
-	
-	branch[level] = 0;	
-	std::cout << "error\n";
-	reverseUpdate2();
-	//branch[level] = 0;
-	//reverseUpdate2();
-	showStatus2();      
-	continue;	
-      }
-
-     
-
-
-    }   
-    */
-
+    
   
     
     
@@ -387,6 +369,7 @@ void problem::DPLL2(){
   std::cout << "UNSAT\n";
 }
 
+// Backtracking
 void problem::reverseUpdate2(){
   // set_vars--;
   level--;  
@@ -395,6 +378,7 @@ void problem::reverseUpdate2(){
  
 }
 
+// update the whole data structure
 void problem::doUpdate2(int branch_var,int branch_val){
   //1. update watchvariables and clause status
   num_decisions++;
@@ -419,6 +403,7 @@ void problem::doUpdate2(int branch_var,int branch_val){
   level++;
 }
 
+// removes satisfied clauses
 void problem::deActivate2(int idx_in_active){
   levelClauses[level][numLevel[level]] = activeClauses[idx_in_active];
   numLevel[level]++;
@@ -426,6 +411,7 @@ void problem::deActivate2(int idx_in_active){
   activeClauses[idx_in_active] = activeClauses[num_active];
 }
 
+// Change satisfied to unsatisified on backtrack
 void problem::activateClauses2(int branch_var,int branch_val){
   for(int i = 0; i < numLevel[level];i++){
     activeClauses[num_active] = levelClauses[level][i];    
@@ -446,7 +432,7 @@ void problem::activateClauses2(int branch_var,int branch_val){
   
 }
 
-
+// prints result to output file
 void problem::saveSolution(int solved){
   std::ofstream out;
   std::cout << out_file << "\n";
@@ -513,6 +499,7 @@ void problem::preProcess(){
   std::cout << save << "\n";
 }
 
+// Initialization stage
 void problem::initProblem(){
   //1. set watch variables
   for(int i = 0; i < P->numClauses();i++){
@@ -547,7 +534,7 @@ void problem::initProblem(){
 }
 
 
-
+// checks for conflicts or if the problem is solved
 int problem::solutionStatus(int &conf_idx){
   conf_idx = -1;
   if(num_active == 0){
@@ -597,7 +584,7 @@ void problem::printStatus(){
 
 
 
-
+/*
 int problem::DPLL(int &conf_idx,int &mod_changed){
   //status
 
@@ -672,7 +659,7 @@ int problem::addConflictClause(int conf1,int conf2,int branch_var){
   //}
   return 0;
 }
-
+*/
 
 
 
@@ -685,6 +672,7 @@ void problem::reverseUpdate(int branch_var,int branch_val,int changed){
   activateClauses(branch_var,branch_val,changed);
 }
 
+/*
 void problem::doUpdate(int branch_var,int branch_val,int &clauses_changed){
   //1. update watchvariables and clause status
   num_decisions++;
@@ -706,6 +694,7 @@ void problem::doUpdate(int branch_var,int branch_val,int &clauses_changed){
     }
   }
 }
+
 
 void problem::showStatus(){
   if(debug == 0)
@@ -737,6 +726,7 @@ void problem::deActivate(int idx_in_active,int &changed){
   num_active--;
   activeClauses[idx_in_active] = activeClauses[num_active];
 }
+*/
 
 void problem::activateClauses(int branch_var,int branch_val,int num){
   for(int i = 0; i < num;i++){
@@ -759,6 +749,7 @@ void problem::activateClauses(int branch_var,int branch_val,int num){
   
 }
 
+// Search for next variable for the assignment
 int problem::selectBranchVariable(int &branch_var,int &branch_val, int &branch_type){
   //1. check for unit clauses
   //2. value metric
@@ -794,7 +785,7 @@ int problem::numClauses(){
 
 
 
-
+// Unit clauses
 bool problem::findUnitClause(int &branch_var, int &branch_val){
   if(SET->watch() == 0){
     

@@ -44,7 +44,7 @@ void parser::setVariableStatus(int ind, int value){
 }
 
 
-
+// Creates the 0,1 matrix
 void parser::convertData(){
   //convets the data to a 0-1 matrix to perform O(1) operatins
   int var = getVar();

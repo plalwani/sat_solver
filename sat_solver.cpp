@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
   SET = new settings(use_watch_variables, conflict_driven_lerning);
   
 
-  std::cout << "PATH: " << path  << "\n";
+  //std::cout << "PATH: " << path  << "\n";
   P = new parser(path);
   //P->printValue();
   problem * prob = new problem(output);
