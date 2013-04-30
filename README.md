@@ -41,13 +41,22 @@ Looping over Benchmarks:
 Directory Structure:
 
 • Makefile: Used for compiling the code
+
 •	Run_benchmarks.pl: A perl script capable of looping over benchmarks
+
 •	Results.csv: Runtime file dumped by benchmarking script
+
 •	Benchmarks.tar: All benchmarks that were used for testing
+
 •	Myrun: executable to run individual input files
+
 •	Parser.h: Header file with the input parser class and init function declarations
+
 •	Parser.cpp: Input parser code
+
 •	Problem.h: header file with all the DPLL functions
+
 •	Problem.cpp: Algorithm code
+
 •	Sat_solver.cpp: Code to execute DPLL
 
